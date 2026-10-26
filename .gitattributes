@@ -1,0 +1,7 @@
+* text=auto
+*.manifest -text
+*.info -text
+*.sh text eol=lf
+*.gz binary
+*.png binary
+*.ico binary

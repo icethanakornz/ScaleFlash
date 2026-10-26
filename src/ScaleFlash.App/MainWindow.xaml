@@ -1,0 +1,165 @@
+<ui:FluentWindow x:Class="ScaleFlash.App.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:vm="clr-namespace:ScaleFlash.App.ViewModels"
+                 xmlns:views="clr-namespace:ScaleFlash.App.Views"
+                 mc:Ignorable="d"
+                 d:DataContext="{d:DesignInstance vm:MainViewModel}"
+                 Title="ScaleFlash — เขียน Image การ์ด SD เครื่องชั่ง"
+                 Width="1220" Height="820" MinWidth="980" MinHeight="660"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round"
+                 FontFamily="{StaticResource AppFont}"
+                 Icon="pack://application:,,,/Assets/app.ico">
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="Taskbar" />
+    </Window.TaskbarItemInfo>
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:WriteViewModel}">
+            <views:WriteView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:InspectViewModel}">
+            <views:InspectView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BackupViewModel}">
+            <views:BackupView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
+            <views:HistoryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+
+        <Style x:Key="NavItem" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="ScaleFlash">
+            <ui:TitleBar.Icon>
+                <ui:ImageIcon Source="pack://application:,,,/Assets/app.png" />
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Navigation -->
+            <DockPanel Grid.Column="0" Margin="12,4,8,12" LastChildFill="False">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,4,0,18">
+                    <Image Source="pack://application:,,,/Assets/app.png" Width="40" Height="40" />
+                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="ScaleFlash" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="การ์ด SD / USB เครื่องชั่ง" Style="{StaticResource SecondaryText}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <ListBox DockPanel.Dock="Top" SelectedIndex="{Binding SelectedIndex}" ItemContainerStyle="{StaticResource NavItem}"
+                         Background="Transparent" BorderThickness="0">
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Flash24" FontSize="20" Margin="0,0,12,0" />
+                            <TextBlock Text="เขียนการ์ด / USB" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="SearchInfo24" FontSize="20" Margin="0,0,12,0" />
+                            <TextBlock Text="ตรวจสอบข้อมูลข้างใน" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="20" Margin="0,0,12,0" />
+                            <TextBlock Text="สำรองเป็นไฟล์ image" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="History24" FontSize="20" Margin="0,0,12,0" />
+                            <TextBlock Text="ประวัติ" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Settings24" FontSize="20" Margin="0,0,12,0" />
+                            <TextBlock Text="ตั้งค่า / เกี่ยวกับ" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+
+                <TextBlock DockPanel.Dock="Bottom" Text="{Binding Notice}" TextWrapping="Wrap" FontSize="12" Margin="6,0,6,10"
+                           Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                           Visibility="{Binding Notice, Converter={StaticResource NullToCollapsed}}" />
+                <Border DockPanel.Dock="Bottom" CornerRadius="6" Padding="10,8" Margin="4,0"
+                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ShieldCheckmark24" FontSize="18" Margin="0,0,8,0"
+                                       Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                       Visibility="{Binding IsElevated, Converter={StaticResource BoolToVisibility}}" />
+                        <ui:SymbolIcon Symbol="Warning24" FontSize="18" Margin="0,0,8,0"
+                                       Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                       Visibility="{Binding IsElevated, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <TextBlock VerticalAlignment="Center" FontSize="12" TextWrapping="Wrap" Width="160">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryText}">
+                                    <Setter Property="Text" Value="สิทธิ์ผู้ใช้ทั่วไป (เขียนการ์ดไม่ได้)" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsElevated}" Value="True">
+                                            <Setter Property="Text" Value="ทำงานแบบ Administrator" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+
+            <!-- Page -->
+            <Grid Grid.Column="1" Margin="4,0,16,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Margin="0,0,0,12" CornerRadius="8" Padding="14,10" BorderThickness="1"
+                        Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        Visibility="{Binding IsElevated, Converter={StaticResource InverseBoolToVisibility}}">
+                    <DockPanel>
+                        <ui:SymbolIcon Symbol="Warning24" FontSize="22" Margin="0,0,12,0" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                        <ui:Button DockPanel.Dock="Right" Content="เปิดใหม่แบบ Administrator" Command="{Binding RestartAsAdminCommand}"
+                                   Icon="{ui:SymbolIcon ShieldCheckmark24}" Appearance="Primary" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="ยังไม่ได้เปิดแบบ Administrator" FontWeight="SemiBold" FontSize="14" />
+                            <TextBlock Style="{StaticResource SecondaryText}"
+                                       Text="Windows ต้องการสิทธิ์ Administrator ในการเขียนการ์ดแบบ raw (โปรแกรมเดิมก็ต้องคลิกขวา Run as administrator)" />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False" />
+            </Grid>
+        </Grid>
+
+        <ui:ContentDialogHost x:Name="DialogHost" Grid.Row="0" Grid.RowSpan="2" />
+    </Grid>
+</ui:FluentWindow>

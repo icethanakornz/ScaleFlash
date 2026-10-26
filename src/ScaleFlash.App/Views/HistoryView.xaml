@@ -1,0 +1,56 @@
+<UserControl x:Class="ScaleFlash.App.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:ScaleFlash.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:HistoryViewModel}">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <ui:Button Content="รีเฟรช" Icon="{ui:SymbolIcon ArrowSync24}" Command="{Binding RefreshCommand}" Margin="0,0,8,0" />
+                <ui:Button Content="เปิดโฟลเดอร์" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding OpenFolderCommand}" />
+            </StackPanel>
+            <TextBlock Text="ประวัติการทำงาน" FontSize="22" FontWeight="SemiBold" />
+        </DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Summary}" Style="{StaticResource SecondaryText}" FontSize="13.5" Margin="0,0,0,12" />
+
+        <Grid>
+            <TextBlock Text="ยังไม่มีประวัติ" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource SecondaryText}"
+                       FontSize="15" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+            <ui:Card Padding="0" VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
+                     Visibility="{Binding IsEmpty, Converter={StaticResource InverseBoolToVisibility}}">
+                <DataGrid ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                          CanUserAddRows="False" GridLinesVisibility="Horizontal" SelectionMode="Single" Background="Transparent"
+                          BorderThickness="0" RowDetailsVisibilityMode="VisibleWhenSelected">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="เวลา" Binding="{Binding Time}" Width="125" />
+                        <DataGridTextColumn Header="งาน" Binding="{Binding Kind}" Width="60" />
+                        <DataGridTemplateColumn Header="ผล" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Result}" FontWeight="SemiBold" VerticalAlignment="Center"
+                                               Foreground="{Binding Status, Converter={StaticResource StatusToBrush}}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="การ์ด" Binding="{Binding Disk}" Width="190" />
+                        <DataGridTextColumn Header="ไฟล์" Binding="{Binding File}" Width="*" />
+                        <DataGridTextColumn Header="ข้อมูล" Binding="{Binding Written}" Width="160" />
+                        <DataGridTextColumn Header="ใช้เวลา" Binding="{Binding Duration}" Width="70" />
+                        <DataGridTextColumn Header="ความเร็ว" Binding="{Binding Speed}" Width="90" />
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Error}" TextWrapping="Wrap" Margin="12,4,12,8"
+                                       Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                       Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
+                        </DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
+            </ui:Card>
+        </Grid>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>ScaleFlash</AssemblyName>
+    <RootNamespace>ScaleFlash.App</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyTitle>ScaleFlash - SD card image writer</AssemblyTitle>
+  </PropertyGroup>
+
+  <!-- Release asks for Administrator automatically; Debug runs as the current user for UI work. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' != 'Release'">
+    <ApplicationManifest>app.debug.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- Test-only build: off-screen snapshot/self-test hooks, runs without elevation. Never shipped. -->
+  <PropertyGroup Condition="'$(SnapshotBuild)' == 'true'">
+    <DefineConstants>$(DefineConstants);SNAPSHOT</DefineConstants>
+    <ApplicationManifest>app.debug.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <Resource Include="Assets\app.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScaleFlash.Core\ScaleFlash.Core.csproj" />
+  </ItemGroup>
+
+</Project>

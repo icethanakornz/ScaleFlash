@@ -1,0 +1,274 @@
+<UserControl x:Class="ScaleFlash.App.Views.InspectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:ScaleFlash.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:InspectViewModel}"
+             d:DesignWidth="980" d:DesignHeight="740">
+    <DockPanel>
+        <!-- source bar -->
+        <ui:Card DockPanel.Dock="Top" Padding="14,10" Margin="0,0,0,12">
+            <DockPanel>
+                <ui:SymbolIcon Symbol="SearchInfo24" FontSize="24" Margin="0,0,12,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Content="เปิดไฟล์ image…" Icon="{ui:SymbolIcon DocumentSearch24}" Command="{Binding OpenImageFileCommand}" Margin="8,0,0,0" />
+                    <ui:Button Content="อ่านใหม่" Icon="{ui:SymbolIcon ArrowSync24}" Command="{Binding ReloadCommand}" Margin="8,0,0,0" />
+                </StackPanel>
+                <TextBlock Text="อุปกรณ์ที่ต้องการตรวจสอบ" VerticalAlignment="Center" Margin="0,0,12,0" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource}" MinWidth="320" HorizontalAlignment="Left">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:SourceItem}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="18" Margin="0,0,10,0">
+                                    <ui:SymbolIcon.Style>
+                                        <Style TargetType="ui:SymbolIcon">
+                                            <Setter Property="Symbol" Value="Storage24" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsUsb}" Value="True">
+                                                    <Setter Property="Symbol" Value="UsbStick24" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding DiskNumber}" Value="{x:Null}">
+                                                    <Setter Property="Symbol" Value="Document24" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:SymbolIcon.Style>
+                                </ui:SymbolIcon>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Subtitle}" Style="{StaticResource SecondaryText}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </DockPanel>
+        </ui:Card>
+
+        <!-- busy bar -->
+        <Border DockPanel.Dock="Bottom" CornerRadius="8" Padding="12,8" Margin="0,10,0,0" BorderThickness="1"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+            <DockPanel>
+                <ui:Button DockPanel.Dock="Right" Content="ยกเลิก" Icon="{ui:SymbolIcon Stop24}" Command="{Binding CancelWorkCommand}" Margin="10,0,0,0" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding BusyText}" TextTrimming="CharacterEllipsis" Margin="0,0,0,6" />
+                    <ProgressBar Height="5" Maximum="100" Value="{Binding BusyProgress}" IsIndeterminate="{Binding BusyIndeterminate}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid>
+            <!-- states: empty / loading / error -->
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="560"
+                        Visibility="{Binding IsOpen, Converter={StaticResource InverseBoolToVisibility}}">
+                <ui:ProgressRing IsIndeterminate="True" Width="40" Height="40" Margin="0,0,0,12"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+                <ui:SymbolIcon Symbol="UsbStick24" FontSize="56" HorizontalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibility}}" />
+                <TextBlock Text="ตรวจสอบข้อมูลใน USB / การ์ด เครื่องชั่ง" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,6" />
+                <TextBlock Style="{StaticResource SecondaryText}" FontSize="13.5" TextAlignment="Center"
+                           Text="เลือกอุปกรณ์ด้านบน แล้วโปรแกรมจะอ่านระบบไฟล์ Linux ที่ Windows อ่านไม่ได้ แสดงเวอร์ชัน เปิดดู/คัดลอกไฟล์ และเทียบกับไฟล์ image ได้ — อ่านอย่างเดียว ไม่แก้ไขข้อมูลบนอุปกรณ์" />
+                <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
+                           TextAlignment="Center" Margin="0,14,0,0" FontSize="14"
+                           Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
+            </StackPanel>
+
+            <Grid Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*" MinWidth="340" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="7*" MinWidth="420" />
+                </Grid.ColumnDefinitions>
+
+                <!-- LEFT: overview -->
+                <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+                    <StackPanel>
+                        <ui:Card Padding="16" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="{Binding DeviceTitle}" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding DeviceSubtitle}" Style="{StaticResource SecondaryText}" Margin="0,2,0,10" />
+                                <ItemsControl ItemsSource="{Binding Partitions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:PartitionCard}">
+                                            <Border CornerRadius="8" Padding="12,10" Margin="0,0,0,8" BorderThickness="1"
+                                                    Background="{DynamicResource ControlFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Details}" Style="{StaticResource SecondaryText}" Margin="0,2,0,6" />
+                                                    <ProgressBar Height="5" Maximum="100" Value="{Binding UsedPercent}" Margin="0,0,0,6"
+                                                                 Visibility="{Binding HasUsage, Converter={StaticResource BoolToVisibility}}" />
+                                                    <Border CornerRadius="6" Padding="8,4" HorizontalAlignment="Left"
+                                                            Background="{Binding StateKind, Converter={StaticResource StatusToBackground}}"
+                                                            Visibility="{Binding State, Converter={StaticResource NullToCollapsed}}">
+                                                        <TextBlock Text="{Binding State}" TextWrapping="Wrap" FontSize="12.5"
+                                                                   Foreground="{Binding StateKind, Converter={StaticResource StatusToBrush}}" />
+                                                    </Border>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Border CornerRadius="8" Padding="12,10" Margin="0,4,0,0" BorderThickness="1"
+                                        Background="{DynamicResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                        Visibility="{Binding CanHideFromWindows, Converter={StaticResource BoolToVisibility}}">
+                                    <StackPanel>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13"
+                                                   Text="Windows ให้ตัวอักษรไดรฟ์กับพาร์ทิชัน Linux นี้ จึงขึ้นหน้าต่างให้ Format กดปุ่มนี้เพื่อซ่อนไดรฟ์จาก Windows (ข้อมูลไม่ถูกแก้ไข)" />
+                                        <ui:Button Content="ซ่อนจาก Windows (กันหน้าต่าง Format)" Icon="{ui:SymbolIcon ShieldCheckmark24}"
+                                                   Command="{Binding HideFromWindowsCommand}" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="{Binding HideStatus}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="13"
+                                           Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                           Visibility="{Binding HideStatus, Converter={StaticResource NullToCollapsed}}" />
+                            </StackPanel>
+                        </ui:Card>
+
+                        <ui:Card Padding="16" Margin="0,0,0,12" Visibility="{Binding HasSystemInfo, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel>
+                                <TextBlock Text="ข้อมูลระบบในเครื่อง" Style="{StaticResource SectionTitle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="เวอร์ชันการ์ด" Style="{StaticResource SecondaryText}" Margin="0,2,14,2" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScaleVersion, TargetNullValue='-'}" FontWeight="SemiBold" FontSize="14" Margin="0,2" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="1" Text="ระบบปฏิบัติการ" Style="{StaticResource SecondaryText}" Margin="0,2,14,2" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OsName, TargetNullValue='-'}" Margin="0,2" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="2" Text="ชื่อเครื่อง" Style="{StaticResource SecondaryText}" Margin="0,2,14,2" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Hostname, TargetNullValue='-'}" Margin="0,2" />
+                                    <TextBlock Grid.Row="3" Text="Kernel" Style="{StaticResource SecondaryText}" Margin="0,2,14,2" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Kernels, TargetNullValue='-'}" Margin="0,2" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="4" Text="Bootloader" Style="{StaticResource SecondaryText}" Margin="0,2,14,2" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Bootloader, TargetNullValue='-'}" Margin="0,2" />
+                                </Grid>
+                                <Expander Header="ไฟล์เวอร์ชันที่พบ" Margin="0,10,0,0">
+                                    <ItemsControl ItemsSource="{Binding VersionFiles}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,4">
+                                                    <TextBlock Text="{Binding Path}" FontWeight="SemiBold" FontSize="12.5" />
+                                                    <TextBlock Text="{Binding Content}" Style="{StaticResource SecondaryText}" FontFamily="Consolas, Leelawadee UI" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Expander>
+                            </StackPanel>
+                        </ui:Card>
+
+                        <ui:Card Padding="16" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="เทียบกับไฟล์ image ต้นฉบับ" Style="{StaticResource SectionTitle}" />
+                                <TextBlock Style="{StaticResource SecondaryText}" Margin="0,0,0,10"
+                                           Text="ดูว่าข้อมูลในอุปกรณ์ยังตรงกับ image หรือไม่ และไฟล์ไหนบนเครื่องชั่งเปลี่ยนไปจากตอนลงครั้งแรก" />
+                                <WrapPanel>
+                                    <ui:Button Content="เทียบรายไฟล์" Icon="{ui:SymbolIcon DocumentSearch24}" Command="{Binding CompareFilesCommand}" Margin="0,0,8,8" Appearance="Primary" />
+                                    <ui:Button Content="เทียบทุกไบต์" Icon="{ui:SymbolIcon CheckmarkCircle24}" Command="{Binding CompareRawCommand}" Margin="0,0,8,8" />
+                                </WrapPanel>
+                                <Border CornerRadius="6" Padding="10,6" Margin="0,4,0,0"
+                                        Background="{Binding CompareKind, Converter={StaticResource StatusToBackground}}"
+                                        Visibility="{Binding CompareSummary, Converter={StaticResource NullToCollapsed}}">
+                                    <TextBlock Text="{Binding CompareSummary}" TextWrapping="Wrap" FontSize="13"
+                                               Foreground="{Binding CompareKind, Converter={StaticResource StatusToBrush}}" />
+                                </Border>
+                            </StackPanel>
+                        </ui:Card>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- RIGHT: browser / compare results -->
+                <ui:Card Grid.Column="2" Padding="12" VerticalAlignment="Stretch" VerticalContentAlignment="Stretch">
+                    <TabControl SelectedIndex="{Binding SelectedTab}" Background="Transparent" BorderThickness="0">
+                        <TabItem Header="ไฟล์ในอุปกรณ์">
+                            <DockPanel Margin="0,8,0,0">
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                                    <ui:Button DockPanel.Dock="Left" Icon="{ui:SymbolIcon ArrowUp24}" Command="{Binding UpCommand}" ToolTip="ขึ้นไปหนึ่งระดับ" Margin="0,0,6,0" />
+                                    <ComboBox DockPanel.Dock="Right" Width="170" Margin="6,0,0,0" ItemsSource="{Binding BrowsablePartitions}"
+                                              SelectedItem="{Binding BrowsePartition}" DisplayMemberPath="Title" ToolTip="พาร์ทิชัน" />
+                                    <ui:TextBox x:Name="PathBox" Text="{Binding CurrentPath, Mode=OneWay}" KeyDown="OnPathKeyDown" FontFamily="Consolas, Leelawadee UI" />
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <ui:Button Content="ดูไฟล์" Icon="{ui:SymbolIcon Eye24}" Command="{Binding PreviewCommand}" Margin="6,0,0,0" />
+                                        <ui:Button Content="คัดลอกออกมา…" Icon="{ui:SymbolIcon ArrowDownload24}" Command="{Binding ExtractCommand}" Margin="6,0,0,0" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding BrowserStatus}" Style="{StaticResource SecondaryText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                </DockPanel>
+                                <DataGrid x:Name="FileGrid" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}" AutoGenerateColumns="False"
+                                          IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None" SelectionMode="Single"
+                                          CanUserAddRows="False" Background="Transparent" BorderThickness="0" MouseDoubleClick="OnFileDoubleClick"
+                                          EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="ชื่อ" Width="*" SortMemberPath="Name">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate DataType="{x:Type vm:FileRow}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <ui:SymbolIcon FontSize="16" Margin="0,0,8,0">
+                                                            <ui:SymbolIcon.Style>
+                                                                <Style TargetType="ui:SymbolIcon">
+                                                                    <Setter Property="Symbol" Value="Document24" />
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                                                                            <Setter Property="Symbol" Value="Folder24" />
+                                                                            <Setter Property="Filled" Value="True" />
+                                                                            <Setter Property="Foreground" Value="#E8B339" />
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Type}" Value="Symlink">
+                                                                            <Setter Property="Symbol" Value="Link24" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ui:SymbolIcon.Style>
+                                                        </ui:SymbolIcon>
+                                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="ขนาด" Binding="{Binding SizeText}" Width="110" SortMemberPath="Size" />
+                                        <DataGridTextColumn Header="แก้ไขล่าสุด" Binding="{Binding Modified}" Width="125" />
+                                        <DataGridTextColumn Header="สิทธิ์" Binding="{Binding Permissions}" Width="90" FontFamily="Consolas" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DockPanel>
+                        </TabItem>
+                        <TabItem Header="ผลการเทียบ">
+                            <DockPanel Margin="0,8,0,0">
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                                    <ui:Button DockPanel.Dock="Right" Content="บันทึกรายงาน…" Icon="{ui:SymbolIcon Save24}" Command="{Binding SaveReportCommand}" />
+                                    <TextBlock Text="{Binding CompareSummary, TargetNullValue='ยังไม่ได้เทียบ — กด เทียบรายไฟล์ ทางซ้าย'}" TextWrapping="Wrap"
+                                               VerticalAlignment="Center" Style="{StaticResource SecondaryText}" FontSize="13" />
+                                </DockPanel>
+                                <DataGrid ItemsSource="{Binding Differences}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                                          GridLinesVisibility="None" CanUserAddRows="False" Background="Transparent" BorderThickness="0"
+                                          EnableRowVirtualization="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="สถานะ" Binding="{Binding KindText}" Width="90" />
+                                        <DataGridTextColumn Header="ไฟล์" Binding="{Binding Path}" Width="*" />
+                                        <DataGridTextColumn Header="รายละเอียด" Binding="{Binding Detail}" Width="210" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DockPanel>
+                        </TabItem>
+                    </TabControl>
+                </ui:Card>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</UserControl>

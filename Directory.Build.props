@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>2.1.1</Version>
+    <Company>ScaleFlash</Company>
+    <Product>ScaleFlash</Product>
+    <Copyright>ScaleFlash 2026</Copyright>
+  </PropertyGroup>
+</Project>

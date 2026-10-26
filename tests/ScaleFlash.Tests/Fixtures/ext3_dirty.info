@@ -1,0 +1,4 @@
+Filesystem features:      has_journal ext_attr resize_inode dir_index filetype needs_recovery sparse_super large_file
+Journal features:         (none)
+Journal sequence:         0x00000002
+Journal start:            1
